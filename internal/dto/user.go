@@ -1,11 +1,13 @@
 package dto
 
+import "time"
+
 type CreateUser struct {
-	Name        string `json:"name" binding:"required"`
-	Username    string `json:"username" binding:"required"`
-	Email       string `json:"email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
-	DateOfBirth string `json:"date_of_birth"`
+	Name        string     `json:"name" binding:"required"`
+	Username    string     `json:"username" binding:"required"`
+	Email       string     `json:"email" binding:"required,email"`
+	Password    string     `json:"password" binding:"required"`
+	DateOfBirth *time.Time `json:"date_of_birth"`
 }
 
 type UserResponse struct {
