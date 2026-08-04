@@ -35,7 +35,7 @@ func (service *DefaultUserService) Create(
 		Email:       request.Email,
 		Password:    request.Password,
 		DateOfBirth: request.DateOfBirth,
-		Active:      true,
+		Active:      false,
 	}
 
 	err := service.userRepository.Create(&user)
