@@ -16,12 +16,17 @@ type UserService interface {
 }
 
 type DefaultUserService struct {
-	userRepository repositories.UserRepository
+	userRepository  repositories.UserRepository
+	tokenRepository repositories.TokenRepository
 }
 
-func NewUserService(userRepository repositories.UserRepository) UserService {
+func NewUserService(
+	userRepository repositories.UserRepository,
+	tokenRepository repositories.TokenRepository,
+) UserService {
 	return &DefaultUserService{
-		userRepository: userRepository,
+		userRepository:  userRepository,
+		tokenRepository: tokenRepository,
 	}
 }
 
