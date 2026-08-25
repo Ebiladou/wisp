@@ -14,6 +14,6 @@ func RegisterUserRoutes(
 
 	{
 		userRoutes.POST("/register", userHandler.CreateUser)
-		userRoutes.GET("/:id", userHandler.GetUserByID)
+		// userRoutes.GET("/:id", userHandler.GetUserByID)
 	}
 }
