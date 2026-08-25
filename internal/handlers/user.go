@@ -7,7 +7,6 @@ import (
 	"github.com/Ebiladou/wisp/internal/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -45,27 +44,27 @@ func (handler *UserHandler) CreateUser(context *gin.Context) {
 	context.JSON(http.StatusCreated, response)
 }
 
-func (handler *UserHandler) GetUserByID(context *gin.Context) {
+// func (handler *UserHandler) GetUserByID(context *gin.Context) {
 
-	id := context.Param("id")
+// 	id := context.Param("id")
 
-	userID, err := uuid.Parse(id)
+// 	userID, err := uuid.Parse(id)
 
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid user ID",
-		})
-		return
-	}
+// 	if err != nil {
+// 		context.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "invalid user ID",
+// 		})
+// 		return
+// 	}
 
-	response, err := handler.userService.GetByID(userID)
+// 	response, err := handler.userService.GetByID(userID)
 
-	if err != nil {
-		context.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
+// 	if err != nil {
+// 		context.JSON(http.StatusNotFound, gin.H{
+// 			"error": err.Error(),
+// 		})
+// 		return
+// 	}
 
-	context.JSON(http.StatusOK, response)
-}
+// 	context.JSON(http.StatusOK, response)
+// }

@@ -5,8 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/Ebiladou/wisp/internal/dto"
 	"github.com/Ebiladou/wisp/internal/models"
 	"github.com/Ebiladou/wisp/internal/repositories"
@@ -15,7 +13,7 @@ import (
 
 type UserService interface {
 	Create(request dto.CreateUser) (*dto.UserResponse, error)
-	GetByID(id uuid.UUID) (*dto.UserResponse, error)
+	// GetByID(id uuid.UUID) (*dto.UserResponse, error)
 }
 
 type DefaultUserService struct {
@@ -33,9 +31,7 @@ func NewUserService(
 	}
 }
 
-func (service *DefaultUserService) Create(
-	request dto.CreateUser,
-) (*dto.UserResponse, error) {
+func (service *DefaultUserService) Create(request dto.CreateUser) (*dto.UserResponse, error) {
 
 	existingUser, err := service.userRepository.FindByEmail(request.Email)
 
@@ -72,7 +68,7 @@ func (service *DefaultUserService) Create(
 		Active:      false,
 	}
 
-	err = service.userRepository.Create(&user)
+	err = service.userRepository.CreateUser(&user)
 
 	if err != nil {
 		return nil, err
@@ -105,32 +101,6 @@ func (service *DefaultUserService) Create(
 		user.Email,
 		rawToken,
 	)
-
-	response := &dto.UserResponse{
-		ID:             user.ID.String(),
-		Name:           user.Name,
-		Username:       user.Username,
-		Email:          user.Email,
-		ProfilePicture: user.ProfilePicture,
-		Active:         user.Active,
-	}
-
-	return response, nil
-}
-
-func (service *DefaultUserService) GetByID(
-	id uuid.UUID,
-) (*dto.UserResponse, error) {
-
-	user, err := service.userRepository.FindByID(id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if user == nil {
-		return nil, errors.New("user not found")
-	}
 
 	response := &dto.UserResponse{
 		ID:             user.ID.String(),
