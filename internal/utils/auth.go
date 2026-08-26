@@ -2,13 +2,14 @@ package utils
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 func HashPassword(password string) (string, error) {
+
 	hashedPassword, err := bcrypt.GenerateFromPassword(
 		[]byte(password),
 		bcrypt.DefaultCost,
@@ -21,8 +22,11 @@ func HashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func ComparePassword(hashedPassword string, password string,
+func ComparePassword(
+	hashedPassword string,
+	password string,
 ) error {
+
 	return bcrypt.CompareHashAndPassword(
 		[]byte(hashedPassword),
 		[]byte(password),
@@ -30,7 +34,9 @@ func ComparePassword(hashedPassword string, password string,
 }
 
 func GenerateToken() (string, error) {
+
 	randomBytes := make([]byte, 32)
+
 	_, err := rand.Read(randomBytes)
 
 	if err != nil {
@@ -41,20 +47,10 @@ func GenerateToken() (string, error) {
 }
 
 func HashToken(token string) string {
-	return fmt.Sprintf("%x", bcryptHash([]byte(token)))
-}
 
-func bcryptHash(value []byte) []byte {
-	hash, err := bcrypt.GenerateFromPassword(
-		value,
-		bcrypt.DefaultCost,
-	)
+	hash := sha256.Sum256([]byte(token))
 
-	if err != nil {
-		return []byte{}
-	}
-
-	return hash
+	return hex.EncodeToString(hash[:])
 }
 
 func GenerateRandomTokenID() (string, error) {

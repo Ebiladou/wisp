@@ -384,7 +384,6 @@ func (service *DefaultAuthService) Login(request dto.LoginRequest) (string, stri
 	accessToken, err := utils.GenerateJWT(
 		user.ID.String(),
 		utils.AccessTokenType,
-		"",
 		service.config,
 		accessTokenExpiry,
 	)
@@ -393,16 +392,9 @@ func (service *DefaultAuthService) Login(request dto.LoginRequest) (string, stri
 		return "", "", err
 	}
 
-	refreshTokenID, err := utils.GenerateRandomTokenID()
-
-	if err != nil {
-		return "", "", err
-	}
-
 	refreshToken, err := utils.GenerateJWT(
 		user.ID.String(),
 		utils.RefreshTokenType,
-		refreshTokenID,
 		service.config,
 		utils.RefreshTokenExpiry,
 	)
@@ -436,7 +428,7 @@ func (service *DefaultAuthService) Logout(refreshToken string) error {
 	service.mu.Lock()
 	defer service.mu.Unlock()
 
-	service.blacklistedRefreshTokens[claims.TokenID] = struct{}{}
+	service.blacklistedRefreshTokens[claims.ID] = struct{}{}
 
 	return nil
 }

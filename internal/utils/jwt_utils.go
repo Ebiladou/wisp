@@ -19,21 +19,21 @@ const (
 type JWTClaims struct {
 	UserID    string `json:"user_id"`
 	TokenType string `json:"token_type"`
-	TokenID   string `json:"token_id,omitempty"`
 
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(userID string, tokenType string, tokenID string, applicationConfig *config.Config, expiration time.Duration) (string, error) {
+func GenerateJWT(userID string, tokenType string, applicationConfig *config.Config, expiration time.Duration) (string, error) {
 
 	currentTime := time.Now()
+
+	tokenID := uuid.New().String()
 
 	claims := JWTClaims{
 		UserID:    userID,
 		TokenType: tokenType,
-		TokenID:   tokenID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID: uuid.New().String(),
+			ID: tokenID,
 			IssuedAt: jwt.NewNumericDate(
 				currentTime,
 			),
