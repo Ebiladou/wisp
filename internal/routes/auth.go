@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(
+func RegisterAuthRoutes(
 	router *gin.Engine,
 	authHandler *handlers.AuthHandler,
 ) {
@@ -19,5 +19,7 @@ func RegisterUserRoutes(
 		authRoutes.POST("/resend-confirmation", authHandler.ResendConfirmation)
 		authRoutes.POST("/forgot-password", authHandler.ForgotPassword)
 		authRoutes.POST("/reset-password", authHandler.ResetPassword)
+		authRoutes.POST("/login", authHandler.Login)
+		authRoutes.POST("/logout", authHandler.Logout)
 	}
 }
