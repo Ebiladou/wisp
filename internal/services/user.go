@@ -9,31 +9,36 @@ import (
 	"github.com/Ebiladou/wisp/internal/models"
 	"github.com/Ebiladou/wisp/internal/repositories"
 	"github.com/Ebiladou/wisp/internal/utils"
+	"github.com/google/uuid"
 )
 
-type UserService interface {
+type AuthService interface {
 	Create(request dto.CreateUser) (*dto.UserResponse, error)
-	// GetByID(id uuid.UUID) (*dto.UserResponse, error)
+	GetByID(id uuid.UUID) (*dto.UserResponse, error)
+	ConfirmEmail(token string) error
+	ResendConfirmation(email string) error
+	ForgotPassword(email string) error
+	ResetPassword(rawToken string, newPassword string) error
 }
 
-type DefaultUserService struct {
-	userRepository  repositories.UserRepository
+type DefaultAuthService struct {
+	authRepository  repositories.AuthRepository
 	tokenRepository repositories.TokenRepository
 }
 
-func NewUserService(
-	userRepository repositories.UserRepository,
+func NewAuthService(
+	authRepository repositories.AuthRepository,
 	tokenRepository repositories.TokenRepository,
-) UserService {
-	return &DefaultUserService{
-		userRepository:  userRepository,
+) AuthService {
+	return &DefaultAuthService{
+		authRepository:  authRepository,
 		tokenRepository: tokenRepository,
 	}
 }
 
-func (service *DefaultUserService) Create(request dto.CreateUser) (*dto.UserResponse, error) {
+func (service *DefaultAuthService) Create(request dto.CreateUser) (*dto.UserResponse, error) {
 
-	existingUser, err := service.userRepository.FindByEmail(request.Email)
+	existingUser, err := service.authRepository.FindByEmail(request.Email)
 
 	if err != nil {
 		return nil, err
@@ -43,7 +48,7 @@ func (service *DefaultUserService) Create(request dto.CreateUser) (*dto.UserResp
 		return nil, errors.New("email already registered")
 	}
 
-	existingUser, err = service.userRepository.FindByUsername(request.Username)
+	existingUser, err = service.authRepository.FindByUsername(request.Username)
 
 	if err != nil {
 		return nil, err
@@ -68,7 +73,7 @@ func (service *DefaultUserService) Create(request dto.CreateUser) (*dto.UserResp
 		Active:      false,
 	}
 
-	err = service.userRepository.CreateUser(&user)
+	err = service.authRepository.CreateUser(&user)
 
 	if err != nil {
 		return nil, err
@@ -112,4 +117,228 @@ func (service *DefaultUserService) Create(request dto.CreateUser) (*dto.UserResp
 	}
 
 	return response, nil
+}
+
+func (service *DefaultAuthService) GetByID(id uuid.UUID) (*dto.UserResponse, error) {
+
+	user, err := service.authRepository.FindByID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	response := &dto.UserResponse{
+		ID:             user.ID.String(),
+		Name:           user.Name,
+		Username:       user.Username,
+		Email:          user.Email,
+		ProfilePicture: user.ProfilePicture,
+		Active:         user.Active,
+	}
+
+	return response, nil
+}
+
+func (service *DefaultAuthService) ConfirmEmail(rawToken string) error {
+
+	hashedToken := utils.HashToken(rawToken)
+
+	token, err := service.tokenRepository.FindByToken(
+		hashedToken,
+		models.TokenTypeEmailVerification,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if token == nil {
+		return errors.New("invalid verification token")
+	}
+
+	if token.UsedAt != nil {
+		return errors.New("verification token has already been used")
+	}
+
+	if token.ExpiresAt.Before(time.Now()) {
+		return errors.New("verification token has expired")
+	}
+
+	user, err := service.authRepository.FindByID(token.UserID)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	if user.Active {
+		return errors.New("user account is already verified")
+	}
+
+	err = service.authRepository.ConfirmUser(user)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.tokenRepository.MarkAsUsed(token)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *DefaultAuthService) ResendConfirmation(email string) error {
+
+	user, err := service.authRepository.FindByEmail(email)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	if user.Active {
+		return errors.New("user account is already verified")
+	}
+
+	rawToken, err := utils.GenerateToken()
+
+	if err != nil {
+		return err
+	}
+
+	hashedToken := utils.HashToken(rawToken)
+
+	token := models.Token{
+		UserID:    user.ID,
+		Token:     hashedToken,
+		TokenType: models.TokenTypeEmailVerification,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	err = service.tokenRepository.Create(&token)
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf(
+		"email verification token for user %s: %s",
+		user.Email,
+		rawToken,
+	)
+
+	return nil
+}
+
+func (service *DefaultAuthService) ForgotPassword(email string) error {
+
+	user, err := service.authRepository.FindByEmail(email)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	rawToken, err := utils.GenerateToken()
+
+	if err != nil {
+		return err
+	}
+
+	hashedToken := utils.HashToken(rawToken)
+
+	token := models.Token{
+		UserID:    user.ID,
+		Token:     hashedToken,
+		TokenType: models.TokenTypePasswordReset,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	err = service.tokenRepository.Create(&token)
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf(
+		"password reset token for user %s: %s",
+		user.Email,
+		rawToken,
+	)
+
+	return nil
+}
+
+func (service *DefaultAuthService) ResetPassword(rawToken string, newPassword string) error {
+
+	hashedToken := utils.HashToken(rawToken)
+
+	token, err := service.tokenRepository.FindByToken(
+		hashedToken,
+		models.TokenTypePasswordReset,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if token == nil {
+		return errors.New("invalid password reset token")
+	}
+
+	if token.UsedAt != nil {
+		return errors.New("password reset token has already been used")
+	}
+
+	if token.ExpiresAt.Before(time.Now()) {
+		return errors.New("password reset token has expired")
+	}
+
+	user, err := service.authRepository.FindByID(token.UserID)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	hashedPassword, err := utils.HashPassword(newPassword)
+
+	if err != nil {
+		return err
+	}
+
+	user.Password = hashedPassword
+
+	err = service.authRepository.UpdatePassword(user)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.tokenRepository.MarkAsUsed(token)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
