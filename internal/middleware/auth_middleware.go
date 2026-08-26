@@ -15,17 +15,17 @@ const AuthenticatedUserKey = "authenticated_user"
 
 type AuthenticationMiddleware struct {
 	applicationConfig *config.Config
-	userRepository    repositories.UserRepository
+	AuthRepository    repositories.AuthRepository
 }
 
 func NewAuthenticationMiddleware(
 	applicationConfig *config.Config,
-	userRepository repositories.UserRepository,
+	AuthRepository repositories.AuthRepository,
 ) *AuthenticationMiddleware {
 
 	return &AuthenticationMiddleware{
 		applicationConfig: applicationConfig,
-		userRepository:    userRepository,
+		AuthRepository:    AuthRepository,
 	}
 }
 
@@ -72,7 +72,7 @@ func (middleware *AuthenticationMiddleware) Authenticate() gin.HandlerFunc {
 			return
 		}
 
-		user, err := middleware.userRepository.FindByID(userID)
+		user, err := middleware.AuthRepository.FindByID(userID)
 
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{
