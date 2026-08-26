@@ -26,27 +26,49 @@ func main() {
 		log.Fatal(err)
 	}
 
-	AuthRepository := repositories.NewPostgreSQLAuthRepository(db)
+	// Repositories
+	authRepository := repositories.NewPostgreSQLAuthRepository(db)
 	tokenRepository := repositories.NewPostgreSQLTokenRepository(db)
+	userRepository := repositories.NewPostgreSQLUserRepository(db)
 
-	AuthService := services.NewAuthService(
-		AuthRepository,
+	// Services
+	authService := services.NewAuthService(
+		authRepository,
 		tokenRepository,
+		applicationConfig,
 	)
 
-	AuthHandler := handlers.NewAuthHandler(AuthService)
+	userService := services.NewUserService(
+		userRepository,
+	)
 
-	authenticationMiddleware :=
-		middleware.NewAuthenticationMiddleware(
-			applicationConfig,
-			AuthRepository,
-		)
+	// Handlers
+	authHandler := handlers.NewAuthHandler(
+		authService,
+		applicationConfig,
+	)
 
+	userHandler := handlers.NewUserHandler(
+		userService,
+	)
+
+	authenticationMiddleware := middleware.AuthMiddleware(
+		authRepository,
+		applicationConfig,
+	)
+
+	// Routes
 	router := gin.Default()
+
+	routes.RegisterAuthRoutes(
+		router,
+		authHandler,
+	)
 
 	routes.RegisterUserRoutes(
 		router,
-		AuthHandler,
+		userHandler,
+		authenticationMiddleware,
 	)
 
 	_ = authenticationMiddleware
