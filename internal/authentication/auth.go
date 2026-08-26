@@ -5,21 +5,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Ebiladou/wisp/internal/middleware"
 	"github.com/Ebiladou/wisp/internal/models"
 )
+
+const AuthenticatedUserKey = "user"
 
 func RequireUser() gin.HandlerFunc {
 
 	return func(context *gin.Context) {
 
-		_, exists := context.Get(
-			middleware.AuthenticatedUserKey,
-		)
+		_, exists := context.Get(AuthenticatedUserKey)
 
 		if !exists {
 			context.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Authenticated user is required.",
+				"error": "authenticated user is required",
 			})
 
 			context.Abort()
@@ -34,13 +33,11 @@ func RequireActiveUser() gin.HandlerFunc {
 
 	return func(context *gin.Context) {
 
-		value, exists := context.Get(
-			middleware.AuthenticatedUserKey,
-		)
+		value, exists := context.Get(AuthenticatedUserKey)
 
 		if !exists {
 			context.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Authenticated user is required.",
+				"error": "authenticated user is required",
 			})
 
 			context.Abort()
@@ -51,7 +48,7 @@ func RequireActiveUser() gin.HandlerFunc {
 
 		if !ok {
 			context.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Invalid authenticated user.",
+				"error": "invalid authenticated user",
 			})
 
 			context.Abort()
@@ -60,7 +57,7 @@ func RequireActiveUser() gin.HandlerFunc {
 
 		if !user.Active {
 			context.JSON(http.StatusForbidden, gin.H{
-				"error": "User account is not active.",
+				"error": "user account is not active",
 			})
 
 			context.Abort()
@@ -69,7 +66,7 @@ func RequireActiveUser() gin.HandlerFunc {
 
 		if user.DeletionRequested {
 			context.JSON(http.StatusForbidden, gin.H{
-				"error": "User account has been deleted.",
+				"error": "user account has been deleted",
 			})
 
 			context.Abort()
