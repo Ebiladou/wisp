@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -12,10 +13,11 @@ import (
 type TokenRepository interface {
 	Create(token *models.Token) error
 
-	FindActiveToken(
-		userID uuid.UUID,
-		tokenType models.TokenType,
-	) (*models.Token, error)
+	FindActiveToken(userID uuid.UUID, tokenType models.TokenType) (*models.Token, error)
+
+	FindByToken(token string, tokenType models.TokenType) (*models.Token, error)
+
+	MarkAsUsed(token *models.Token) error
 }
 
 type PostgreSQLTokenRepository struct {
@@ -31,17 +33,11 @@ func NewPostgreSQLTokenRepository(
 	}
 }
 
-func (repository *PostgreSQLTokenRepository) Create(
-	token *models.Token,
-) error {
-
+func (repository *PostgreSQLTokenRepository) Create(token *models.Token) error {
 	return repository.database.Create(token).Error
 }
 
-func (repository *PostgreSQLTokenRepository) FindActiveToken(
-	userID uuid.UUID,
-	tokenType models.TokenType,
-) (*models.Token, error) {
+func (repository *PostgreSQLTokenRepository) FindActiveToken(userID uuid.UUID, tokenType models.TokenType) (*models.Token, error) {
 
 	var token models.Token
 
@@ -63,4 +59,36 @@ func (repository *PostgreSQLTokenRepository) FindActiveToken(
 	}
 
 	return &token, nil
+}
+
+func (repository *PostgreSQLTokenRepository) FindByToken(token string, tokenType models.TokenType) (*models.Token, error) {
+
+	var tokenModel models.Token
+
+	err := repository.database.
+		Where(
+			"token = ? AND token_type = ?",
+			token,
+			tokenType,
+		).
+		First(&tokenModel).Error
+
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &tokenModel, nil
+}
+
+func (repository *PostgreSQLTokenRepository) MarkAsUsed(token *models.Token) error {
+
+	return repository.database.
+		Model(token).
+		Update("used_at", time.Now()).
+		Error
 }
