@@ -252,7 +252,7 @@ func (service *DefaultAuthService) ForgotPassword(email string) error {
 	}
 
 	if user == nil {
-		return errors.New("user not found")
+		return nil
 	}
 
 	rawToken, err := utils.GenerateToken()
@@ -317,7 +317,7 @@ func (service *DefaultAuthService) ResetPassword(rawToken string, newPassword st
 	}
 
 	if user == nil {
-		return errors.New("user not found")
+		return nil
 	}
 
 	hashedPassword, err := utils.HashPassword(newPassword)

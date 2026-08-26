@@ -147,7 +147,7 @@ func (handler *AuthHandler) ForgotPassword(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, gin.H{
-		"message": "password reset instructions sent",
+		"message": "if an account exists for that email, password reset link have been sent.",
 	})
 }
 
