@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/Ebiladou/wisp/internal/authentication"
 	"github.com/Ebiladou/wisp/internal/dto"
 	"github.com/Ebiladou/wisp/internal/models"
 	"github.com/Ebiladou/wisp/internal/services"
@@ -25,23 +26,9 @@ func NewUserHandler(
 
 func (handler *UserHandler) GetProfile(context *gin.Context) {
 
-	value, exists := context.Get("user")
-
-	if !exists {
-		context.JSON(http.StatusUnauthorized, gin.H{
-			"error": "authenticated user is required",
-		})
-		return
-	}
-
-	user, ok := value.(*models.User)
-
-	if !ok {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error": "invalid authenticated user",
-		})
-		return
-	}
+	user := context.MustGet(
+		authentication.AuthenticatedUserKey,
+	).(*models.User)
 
 	response, err := handler.userService.GetProfile(user.ID)
 
@@ -57,23 +44,9 @@ func (handler *UserHandler) GetProfile(context *gin.Context) {
 
 func (handler *UserHandler) UpdateProfile(context *gin.Context) {
 
-	value, exists := context.Get("user")
-
-	if !exists {
-		context.JSON(http.StatusUnauthorized, gin.H{
-			"error": "authenticated user is required",
-		})
-		return
-	}
-
-	user, ok := value.(*models.User)
-
-	if !ok {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"error": "invalid authenticated user",
-		})
-		return
-	}
+	user := context.MustGet(
+		authentication.AuthenticatedUserKey,
+	).(*models.User)
 
 	var request dto.UpdateUserRequest
 
@@ -99,4 +72,43 @@ func (handler *UserHandler) UpdateProfile(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, response)
+}
+
+func (handler *UserHandler) DeactivateUser(context *gin.Context) {
+	user := context.MustGet(
+		authentication.AuthenticatedUserKey,
+	).(*models.User)
+
+	err := handler.userService.DeactivateUser(user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{
+		"message": "account deactivated successfully",
+	})
+}
+
+func (handler *UserHandler) ActivateUser(context *gin.Context) {
+
+	user := context.MustGet(
+		authentication.AuthenticatedUserKey,
+	).(*models.User)
+
+	err := handler.userService.ActivateUser(user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{
+		"message": "account activated successfully",
+	})
 }
