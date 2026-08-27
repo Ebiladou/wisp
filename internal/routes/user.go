@@ -29,5 +29,17 @@ func RegisterUserRoutes(
 			authentication.RequireActiveUser(),
 			userHandler.UpdateProfile,
 		)
+
+		userRoutes.POST(
+			"/deactivate",
+			authentication.RequireActiveUser(),
+			userHandler.DeactivateUser,
+		)
+
+		userRoutes.POST(
+			"/activate",
+			authentication.RequireUser(),
+			userHandler.ActivateUser,
+		)
 	}
 }

@@ -12,6 +12,8 @@ import (
 type UserService interface {
 	GetProfile(userID uuid.UUID) (*dto.UserResponse, error)
 	UpdateProfile(userID uuid.UUID, request dto.UpdateUserRequest) (*dto.UserResponse, error)
+	DeactivateUser(userID uuid.UUID) error
+	ActivateUser(userID uuid.UUID) error
 }
 
 type DefaultUserService struct {
@@ -103,4 +105,34 @@ func (service *DefaultUserService) UpdateProfile(userID uuid.UUID, request dto.U
 	}
 
 	return response, nil
+}
+
+func (service *DefaultUserService) DeactivateUser(userID uuid.UUID) error {
+
+	user, err := service.userRepository.FindByID(userID)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	return service.userRepository.DeactivateUser(user)
+}
+
+func (service *DefaultUserService) ActivateUser(userID uuid.UUID) error {
+
+	user, err := service.userRepository.FindByID(userID)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	return service.userRepository.ActivateUser(user)
 }
