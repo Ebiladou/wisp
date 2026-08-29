@@ -10,6 +10,7 @@ import (
 func RegisterUserRoutes(
 	router *gin.Engine,
 	userHandler *handlers.UserHandler,
+	followHandler *handlers.FollowHandler,
 	authenticationMiddleware gin.HandlerFunc,
 ) {
 
@@ -40,6 +41,30 @@ func RegisterUserRoutes(
 			"/activate",
 			authentication.RequireUser(),
 			userHandler.ActivateUser,
+		)
+
+		userRoutes.POST(
+			"/:id/follow",
+			authentication.RequireActiveUser(),
+			followHandler.Follow,
+		)
+
+		userRoutes.DELETE(
+			"/:id/follow",
+			authentication.RequireActiveUser(),
+			followHandler.Unfollow,
+		)
+
+		userRoutes.GET(
+			"/:id/followers",
+			authentication.RequireActiveUser(),
+			followHandler.GetFollowers,
+		)
+
+		userRoutes.GET(
+			"/:id/following",
+			authentication.RequireActiveUser(),
+			followHandler.GetFollowing,
 		)
 	}
 }
