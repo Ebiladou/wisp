@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	FindByID(id uuid.UUID) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
+	SearchUsers(query string) ([]*models.User, error)
 	UpdateUser(user *models.User) error
 	DeactivateUser(user *models.User) error
 	ActivateUser(user *models.User) error
@@ -90,4 +91,23 @@ func (repository *PostgreSQLUserRepository) ActivateUser(user *models.User) erro
 	user.DeletionRequested = false
 
 	return repository.database.Save(user).Error
+}
+
+func (repository *PostgreSQLUserRepository) SearchUsers(query string) ([]*models.User, error) {
+
+	var users []*models.User
+
+	err := repository.database.
+		Where(
+			"username ILIKE ? OR name ILIKE ?",
+			"%"+query+"%",
+			"%"+query+"%",
+		).
+		Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

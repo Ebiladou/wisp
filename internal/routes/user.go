@@ -56,6 +56,12 @@ func RegisterUserRoutes(
 		)
 
 		userRoutes.GET(
+			"",
+			authentication.RequireActiveUser(),
+			userHandler.SearchUsers,
+		)
+
+		userRoutes.GET(
 			"/:id/followers",
 			authentication.RequireActiveUser(),
 			followHandler.GetFollowers,

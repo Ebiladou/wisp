@@ -14,6 +14,7 @@ type UserService interface {
 	UpdateProfile(userID uuid.UUID, request dto.UpdateUserRequest) (*dto.UserResponse, error)
 	DeactivateUser(userID uuid.UUID) error
 	ActivateUser(userID uuid.UUID) error
+	SearchUsers(query string) ([]*dto.PublicUserResponse, error)
 }
 
 type DefaultUserService struct {
@@ -135,4 +136,26 @@ func (service *DefaultUserService) ActivateUser(userID uuid.UUID) error {
 	}
 
 	return service.userRepository.ActivateUser(user)
+}
+
+func (service *DefaultUserService) SearchUsers(query string) ([]*dto.PublicUserResponse, error) {
+
+	users, err := service.userRepository.SearchUsers(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []*dto.PublicUserResponse
+
+	for _, user := range users {
+		responses = append(responses, &dto.PublicUserResponse{
+			ID:             user.ID.String(),
+			Name:           user.Name,
+			Username:       user.Username,
+			ProfilePicture: user.ProfilePicture,
+		})
+	}
+
+	return responses, nil
 }
