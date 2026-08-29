@@ -30,6 +30,7 @@ func main() {
 	authRepository := repositories.NewPostgreSQLAuthRepository(db)
 	tokenRepository := repositories.NewPostgreSQLTokenRepository(db)
 	userRepository := repositories.NewPostgreSQLUserRepository(db)
+	followRepository := repositories.NewPostgreSQLFollowRepository(db)
 
 	// Services
 	authService := services.NewAuthService(
@@ -39,6 +40,11 @@ func main() {
 	)
 
 	userService := services.NewUserService(
+		userRepository,
+	)
+
+	followService := services.NewFollowService(
+		followRepository,
 		userRepository,
 	)
 
@@ -52,6 +58,11 @@ func main() {
 		userService,
 	)
 
+	followHandler := handlers.NewFollowHandler(
+		followService,
+	)
+
+	// Middlewares
 	authenticationMiddleware := middleware.AuthMiddleware(
 		authRepository,
 		applicationConfig,
@@ -68,6 +79,7 @@ func main() {
 	routes.RegisterUserRoutes(
 		router,
 		userHandler,
+		followHandler,
 		authenticationMiddleware,
 	)
 
