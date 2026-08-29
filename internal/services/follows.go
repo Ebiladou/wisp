@@ -12,8 +12,8 @@ import (
 type FollowService interface {
 	FollowUser(followerID uuid.UUID, followingID uuid.UUID) error
 	UnfollowUser(followerID uuid.UUID, followingID uuid.UUID) error
-	GetFollowing(userID uuid.UUID) ([]*dto.UserResponse, error)
-	GetFollowers(userID uuid.UUID) ([]*dto.UserResponse, error)
+	GetFollowing(userID uuid.UUID) ([]*dto.PublicUserResponse, error)
+	GetFollowers(userID uuid.UUID) ([]*dto.PublicUserResponse, error)
 }
 
 type DefaultFollowService struct {
@@ -57,7 +57,7 @@ func (service *DefaultFollowService) UnfollowUser(followerID uuid.UUID, followin
 	return service.followRepository.RemoveFollow(followerID, followingID)
 }
 
-func (service *DefaultFollowService) GetFollowing(userID uuid.UUID) ([]*dto.UserResponse, error) {
+func (service *DefaultFollowService) GetFollowing(userID uuid.UUID) ([]*dto.PublicUserResponse, error) {
 
 	users, err := service.followRepository.GetFollowing(userID)
 
@@ -65,23 +65,21 @@ func (service *DefaultFollowService) GetFollowing(userID uuid.UUID) ([]*dto.User
 		return nil, err
 	}
 
-	responses := make([]*dto.UserResponse, 0, len(users))
+	responses := make([]*dto.PublicUserResponse, 0, len(users))
 
 	for _, user := range users {
-		responses = append(responses, &dto.UserResponse{
+		responses = append(responses, &dto.PublicUserResponse{
 			ID:             user.ID.String(),
 			Name:           user.Name,
 			Username:       user.Username,
-			Email:          user.Email,
 			ProfilePicture: user.ProfilePicture,
-			Active:         user.Active,
 		})
 	}
 
 	return responses, nil
 }
 
-func (service *DefaultFollowService) GetFollowers(userID uuid.UUID) ([]*dto.UserResponse, error) {
+func (service *DefaultFollowService) GetFollowers(userID uuid.UUID) ([]*dto.PublicUserResponse, error) {
 
 	users, err := service.followRepository.GetFollowers(userID)
 
@@ -89,16 +87,14 @@ func (service *DefaultFollowService) GetFollowers(userID uuid.UUID) ([]*dto.User
 		return nil, err
 	}
 
-	responses := make([]*dto.UserResponse, 0, len(users))
+	responses := make([]*dto.PublicUserResponse, 0, len(users))
 
 	for _, user := range users {
-		responses = append(responses, &dto.UserResponse{
+		responses = append(responses, &dto.PublicUserResponse{
 			ID:             user.ID.String(),
 			Name:           user.Name,
 			Username:       user.Username,
-			Email:          user.Email,
 			ProfilePicture: user.ProfilePicture,
-			Active:         user.Active,
 		})
 	}
 

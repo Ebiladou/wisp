@@ -25,3 +25,10 @@ type UserResponse struct {
 	ProfilePicture string `json:"profile_picture"`
 	Active         bool   `json:"active"`
 }
+
+type PublicUserResponse struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Username       string `json:"username"`
+	ProfilePicture string `json:"profile_picture"`
+}
