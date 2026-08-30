@@ -11,6 +11,7 @@ func RegisterUserRoutes(
 	router *gin.Engine,
 	userHandler *handlers.UserHandler,
 	followHandler *handlers.FollowHandler,
+	blockHandler *handlers.BlockHandler,
 	authenticationMiddleware gin.HandlerFunc,
 ) {
 
@@ -59,6 +60,24 @@ func RegisterUserRoutes(
 			"",
 			authentication.RequireActiveUser(),
 			userHandler.SearchUsers,
+		)
+
+		userRoutes.POST(
+			"/:id/block",
+			authentication.RequireActiveUser(),
+			blockHandler.BlockUser,
+		)
+
+		userRoutes.DELETE(
+			"/:id/block",
+			authentication.RequireActiveUser(),
+			blockHandler.UnblockUser,
+		)
+
+		userRoutes.GET(
+			"/blocked",
+			authentication.RequireActiveUser(),
+			blockHandler.GetBlockedUsers,
 		)
 
 		userRoutes.GET(
