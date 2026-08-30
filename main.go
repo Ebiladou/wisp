@@ -31,6 +31,7 @@ func main() {
 	tokenRepository := repositories.NewPostgreSQLTokenRepository(db)
 	userRepository := repositories.NewPostgreSQLUserRepository(db)
 	followRepository := repositories.NewPostgreSQLFollowRepository(db)
+	blockRepository := repositories.NewPostgreSQLBlockRepository(db)
 
 	// Services
 	authService := services.NewAuthService(
@@ -48,6 +49,12 @@ func main() {
 		userRepository,
 	)
 
+	blockService := services.NewBlockService(
+		blockRepository,
+		userRepository,
+		followRepository,
+	)
+
 	// Handlers
 	authHandler := handlers.NewAuthHandler(
 		authService,
@@ -60,6 +67,10 @@ func main() {
 
 	followHandler := handlers.NewFollowHandler(
 		followService,
+	)
+
+	blockHandler := handlers.NewBlockHandler(
+		blockService,
 	)
 
 	// Middlewares
@@ -80,6 +91,7 @@ func main() {
 		router,
 		userHandler,
 		followHandler,
+		blockHandler,
 		authenticationMiddleware,
 	)
 
