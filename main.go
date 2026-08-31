@@ -47,6 +47,7 @@ func main() {
 	followService := services.NewFollowService(
 		followRepository,
 		userRepository,
+		blockRepository,
 	)
 
 	blockService := services.NewBlockService(
