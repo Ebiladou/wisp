@@ -69,7 +69,7 @@ func RegisterUserRoutes(
 		)
 
 		userRoutes.DELETE(
-			"/:id/block",
+			"/:id/unblock",
 			authentication.RequireActiveUser(),
 			blockHandler.UnblockUser,
 		)

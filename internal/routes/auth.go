@@ -13,7 +13,7 @@ func RegisterAuthRoutes(
 	authRoutes := router.Group("/auth")
 
 	{
-		authRoutes.POST("/register", authHandler.CreateUser)
+		authRoutes.POST("/signup", authHandler.CreateUser)
 		authRoutes.GET("/users/:id", authHandler.GetUserByID)
 		authRoutes.POST("/confirm-email", authHandler.ConfirmEmail)
 		authRoutes.POST("/resend-confirmation", authHandler.ResendConfirmation)
