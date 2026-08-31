@@ -98,7 +98,7 @@ func (service *DefaultBlockService) GetBlockedUsers(blockerID uuid.UUID) ([]*dto
 		return nil, err
 	}
 
-	var responses []*dto.PublicUserResponse
+	responses := make([]*dto.PublicUserResponse, 0)
 
 	for _, user := range users {
 		responses = append(responses, &dto.PublicUserResponse{
