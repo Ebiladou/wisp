@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/Ebiladou/wisp/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -10,6 +12,8 @@ type BlockRepository interface {
 	CreateBlock(block *models.Block) error
 	RemoveBlock(blockerID uuid.UUID, blockedID uuid.UUID) error
 	GetBlockedUsers(blockerID uuid.UUID) ([]*models.User, error)
+	BlockExists(blockerID uuid.UUID, blockedID uuid.UUID) (bool, error)
+	IsBlocked(blockerID uuid.UUID, blockedID uuid.UUID) (bool, error) // anyone could have initiated the block, doesn't matter who, so ignore this argument naming convention. both are checked for an existing block relationship anyway.
 }
 
 type PostgreSQLBlockRepository struct {
@@ -60,4 +64,55 @@ func (repository *PostgreSQLBlockRepository) GetBlockedUsers(blockerID uuid.UUID
 	}
 
 	return users, nil
+}
+
+func (repository *PostgreSQLBlockRepository) BlockExists(blockerID uuid.UUID, blockedID uuid.UUID) (bool, error) {
+
+	var block models.Block
+
+	err := repository.database.
+		Where(
+			"blocker_id = ? AND blocked_id = ?",
+			blockerID,
+			blockedID,
+		).
+		First(&block).Error
+
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (repository *PostgreSQLBlockRepository) IsBlocked(blockerID uuid.UUID, blockedID uuid.UUID) (bool, error) {
+
+	var block models.Block
+
+	err := repository.database.
+		Where(
+			"(blocker_id = ? AND blocked_id = ?) OR "+
+				"(blocker_id = ? AND blocked_id = ?)",
+			blockerID,
+			blockedID,
+			blockedID,
+			blockerID,
+		).
+		First(&block).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

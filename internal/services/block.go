@@ -46,6 +46,19 @@ func (service *DefaultBlockService) BlockUser(blockerID uuid.UUID, blockedID uui
 		return errors.New("user not found")
 	}
 
+	exists, err := service.blockRepository.BlockExists(
+		blockerID,
+		blockedID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return errors.New("user is already blocked")
+	}
+
 	block := models.Block{
 		BlockerID: blockerID,
 		BlockedID: blockedID,
