@@ -75,7 +75,7 @@ func RegisterUserRoutes(
 		)
 
 		userRoutes.GET(
-			"/blocked",
+			"/blocked-users",
 			authentication.RequireActiveUser(),
 			blockHandler.GetBlockedUsers,
 		)
