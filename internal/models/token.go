@@ -15,7 +15,7 @@ const (
 )
 
 type Token struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
 	Token     string    `gorm:"not null;uniqueIndex"`
 	TokenType TokenType `gorm:"type:varchar(50);not null"`
