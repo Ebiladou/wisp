@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type TokenType string
@@ -22,11 +21,4 @@ type Token struct {
 	ExpiresAt time.Time `gorm:"not null"`
 	UsedAt    *time.Time
 	CreatedAt time.Time
-}
-
-func (token *Token) BeforeCreate(tx *gorm.DB) error {
-	if token.ID == uuid.Nil {
-		token.ID = uuid.New()
-	}
-	return nil
 }
