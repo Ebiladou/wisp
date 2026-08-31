@@ -22,7 +22,12 @@ func ConnectToDatabase(applicationConfig *config.Config) (*gorm.DB, error) {
 	}
 	log.Println("Successfully connected to database")
 
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.Follow{},
+		&models.Block{},
+		&models.Token{},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
