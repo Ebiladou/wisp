@@ -12,7 +12,7 @@ import (
 type UserRepository interface {
 	FindByID(id uuid.UUID) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
-	SearchUsers(query string) ([]*models.User, error)
+	SearchUsers(userID uuid.UUID, query string) ([]*models.User, error)
 	UpdateUser(user *models.User) error
 	DeactivateUser(user *models.User) error
 	ActivateUser(user *models.User) error
@@ -93,17 +93,30 @@ func (repository *PostgreSQLUserRepository) ActivateUser(user *models.User) erro
 	return repository.database.Save(user).Error
 }
 
-func (repository *PostgreSQLUserRepository) SearchUsers(query string) ([]*models.User, error) {
+func (repository *PostgreSQLUserRepository) SearchUsers(userID uuid.UUID, query string) ([]*models.User, error) {
 
 	var users []*models.User
 
 	err := repository.database.
 		Where(
-			"username ILIKE ? OR name ILIKE ?",
+			"users.username ILIKE ? OR users.name ILIKE ?",
 			"%"+query+"%",
 			"%"+query+"%",
 		).
-		Find(&users).Error
+		Where(
+			`NOT EXISTS (
+				SELECT 1
+				FROM blocks
+				WHERE
+					(blocks.blocker_id = ? AND blocks.blocked_id = users.id)
+					OR
+					(blocks.blocker_id = users.id AND blocks.blocked_id = ?)
+			)`,
+			userID,
+			userID,
+		).
+		Find(&users).
+		Error
 
 	if err != nil {
 		return nil, err

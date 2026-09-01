@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -115,19 +114,18 @@ func (handler *UserHandler) ActivateUser(context *gin.Context) {
 }
 
 func (handler *UserHandler) SearchUsers(context *gin.Context) {
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
 
-	query := strings.TrimSpace(
-		context.Query("q"),
-	)
+	query := context.Query("q")
 
 	if query == "" {
 		context.JSON(http.StatusBadRequest, gin.H{
-			"error": "enter name to search",
+			"error": "search query is required",
 		})
 		return
 	}
 
-	response, err := handler.userService.SearchUsers(query)
+	users, err := handler.userService.SearchUsers(user.ID, query)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -136,5 +134,5 @@ func (handler *UserHandler) SearchUsers(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusOK, users)
 }

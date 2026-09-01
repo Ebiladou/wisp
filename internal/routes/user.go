@@ -27,15 +27,9 @@ func RegisterUserRoutes(
 		)
 
 		userRoutes.PATCH(
-			"/me",
+			"/update",
 			authentication.RequireActiveUser(),
 			userHandler.UpdateProfile,
-		)
-
-		userRoutes.POST(
-			"/deactivate",
-			authentication.RequireActiveUser(),
-			userHandler.DeactivateUser,
 		)
 
 		userRoutes.POST(
@@ -45,13 +39,19 @@ func RegisterUserRoutes(
 		)
 
 		userRoutes.POST(
+			"/deactivate",
+			authentication.RequireActiveUser(),
+			userHandler.DeactivateUser,
+		)
+
+		userRoutes.POST(
 			"/:id/follow",
 			authentication.RequireActiveUser(),
 			followHandler.Follow,
 		)
 
 		userRoutes.DELETE(
-			"/:id/follow",
+			"/:id/unfollow",
 			authentication.RequireActiveUser(),
 			followHandler.Unfollow,
 		)
