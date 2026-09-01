@@ -12,11 +12,8 @@ import (
 
 type TokenRepository interface {
 	Create(token *models.Token) error
-
 	FindActiveToken(userID uuid.UUID, tokenType models.TokenType) (*models.Token, error)
-
 	FindByToken(token string, tokenType models.TokenType) (*models.Token, error)
-
 	MarkAsUsed(token *models.Token) error
 }
 
