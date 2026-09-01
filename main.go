@@ -34,6 +34,11 @@ func main() {
 	blockRepository := repositories.NewPostgreSQLBlockRepository(db)
 
 	// Services
+
+	accessPolicy := services.NewAccessPolicy(
+		blockRepository,
+	)
+
 	authService := services.NewAuthService(
 		authRepository,
 		tokenRepository,
@@ -47,7 +52,7 @@ func main() {
 	followService := services.NewFollowService(
 		followRepository,
 		userRepository,
-		blockRepository,
+		accessPolicy,
 	)
 
 	blockService := services.NewBlockService(
