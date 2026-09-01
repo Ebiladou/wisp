@@ -16,10 +16,6 @@ type AuthRepository interface {
 	FindByUsername(username string) (*models.User, error)
 	ConfirmUser(user *models.User) error
 	UpdatePassword(user *models.User) error
-
-	// GetUser(user *models.User) (*models.User, error)
-	// UpdateUser(user *models.User) (*models.User, error)
-	// DeleteUser(user *models.User) error
 }
 
 type PostgreSQLAuthRepository struct {
