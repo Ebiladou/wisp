@@ -19,19 +19,19 @@ type FollowService interface {
 type DefaultFollowService struct {
 	followRepository repositories.FollowRepository
 	userRepository   repositories.UserRepository
-	blockRepository  repositories.BlockRepository
+	accessPolicy     AccessPolicy
 }
 
 func NewFollowService(
 	followRepository repositories.FollowRepository,
 	userRepository repositories.UserRepository,
-	blockRepository repositories.BlockRepository,
+	accessPolicy AccessPolicy,
 ) FollowService {
 
 	return &DefaultFollowService{
 		followRepository: followRepository,
 		userRepository:   userRepository,
-		blockRepository:  blockRepository,
+		accessPolicy:     accessPolicy,
 	}
 }
 
@@ -47,14 +47,8 @@ func (service *DefaultFollowService) FollowUser(followerID uuid.UUID, followingI
 		return errors.New("user not found")
 	}
 
-	blocked, err := service.blockRepository.IsBlocked(followerID, followingID)
-
-	if err != nil {
+	if err := service.accessPolicy.CanAccess(followerID, followingID); err != nil {
 		return err
-	}
-
-	if blocked {
-		return errors.New("blocked by user")
 	}
 
 	follow := models.Follow{
