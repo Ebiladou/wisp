@@ -26,9 +26,7 @@ func NewUserHandler(
 
 func (handler *UserHandler) GetProfile(context *gin.Context) {
 
-	user := context.MustGet(
-		authentication.AuthenticatedUserKey,
-	).(*models.User)
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
 
 	response, err := handler.userService.GetProfile(user.ID)
 
@@ -44,9 +42,7 @@ func (handler *UserHandler) GetProfile(context *gin.Context) {
 
 func (handler *UserHandler) UpdateProfile(context *gin.Context) {
 
-	user := context.MustGet(
-		authentication.AuthenticatedUserKey,
-	).(*models.User)
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
 
 	var request dto.UpdateUserRequest
 
@@ -75,9 +71,7 @@ func (handler *UserHandler) UpdateProfile(context *gin.Context) {
 }
 
 func (handler *UserHandler) DeactivateUser(context *gin.Context) {
-	user := context.MustGet(
-		authentication.AuthenticatedUserKey,
-	).(*models.User)
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
 
 	err := handler.userService.DeactivateUser(user.ID)
 
@@ -95,9 +89,7 @@ func (handler *UserHandler) DeactivateUser(context *gin.Context) {
 
 func (handler *UserHandler) ActivateUser(context *gin.Context) {
 
-	user := context.MustGet(
-		authentication.AuthenticatedUserKey,
-	).(*models.User)
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
 
 	err := handler.userService.ActivateUser(user.ID)
 
