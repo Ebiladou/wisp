@@ -85,12 +85,19 @@ func main() {
 		applicationConfig,
 	)
 
+	rateLimiter, err := middleware.NewRateLimiter("localhost:6379")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rateLimiter.Close()
+
 	// Routes
 	router := gin.Default()
 
 	routes.RegisterAuthRoutes(
 		router,
 		authHandler,
+		rateLimiter,
 	)
 
 	routes.RegisterUserRoutes(
@@ -99,9 +106,8 @@ func main() {
 		followHandler,
 		blockHandler,
 		authenticationMiddleware,
+		rateLimiter,
 	)
-
-	_ = authenticationMiddleware
 
 	err = router.Run(":" + applicationConfig.Port)
 	if err != nil {
