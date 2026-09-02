@@ -5,6 +5,7 @@ import (
 
 	"github.com/Ebiladou/wisp/internal/authentication"
 	"github.com/Ebiladou/wisp/internal/handlers"
+	"github.com/Ebiladou/wisp/internal/middleware"
 )
 
 func RegisterUserRoutes(
@@ -13,11 +14,15 @@ func RegisterUserRoutes(
 	followHandler *handlers.FollowHandler,
 	blockHandler *handlers.BlockHandler,
 	authenticationMiddleware gin.HandlerFunc,
+	rateLimiter *middleware.RateLimiter,
 ) {
 
 	userRoutes := router.Group("/users")
 
-	userRoutes.Use(authenticationMiddleware)
+	userRoutes.Use(
+		authenticationMiddleware,
+		rateLimiter.Middleware(defaultRateLimit),
+	)
 
 	{
 		userRoutes.GET(
