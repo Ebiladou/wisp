@@ -55,10 +55,7 @@ func (handler *UserHandler) UpdateProfile(context *gin.Context) {
 		return
 	}
 
-	response, err := handler.userService.UpdateProfile(
-		user.ID,
-		request,
-	)
+	response, err := handler.userService.UpdateProfile(user.ID, request)
 
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
