@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -29,6 +30,7 @@ type DefaultAuthService struct {
 	authRepository  repositories.AuthRepository
 	tokenRepository repositories.TokenRepository
 	config          *config.Config
+	logger          *slog.Logger
 
 	blacklistedRefreshTokens map[string]struct{}
 	mu                       sync.RWMutex
@@ -38,12 +40,14 @@ func NewAuthService(
 	authRepository repositories.AuthRepository,
 	tokenRepository repositories.TokenRepository,
 	applicationConfig *config.Config,
+	logger *slog.Logger,
 ) AuthService {
 
 	return &DefaultAuthService{
 		authRepository:  authRepository,
 		tokenRepository: tokenRepository,
 		config:          applicationConfig,
+		logger:          logger,
 
 		blacklistedRefreshTokens: make(map[string]struct{}),
 	}
@@ -113,7 +117,7 @@ func (service *DefaultAuthService) Create(request dto.CreateUser) (*dto.UserResp
 		return nil, err
 	}
 
-	// for testing, please. we'll move to an email service soon enough when my bag is up.
+	// for testing, please. we'll move to an email service soon enough when my bag is up for a cheap domain name & email service.
 	log.Printf(
 		"email verification token for user %s: %s",
 		user.Email,
@@ -247,6 +251,7 @@ func (service *DefaultAuthService) ResendConfirmation(email string) error {
 		return err
 	}
 
+	//  Again, printing to console for just test till I move to prod. No judgement.
 	log.Printf(
 		"email verification token for user %s: %s",
 		user.Email,
@@ -368,10 +373,7 @@ func (service *DefaultAuthService) Login(request dto.LoginRequest) (string, stri
 		return "", "", errors.New("invalid email or password")
 	}
 
-	err = utils.ComparePassword(
-		user.Password,
-		request.Password,
-	)
+	err = utils.ComparePassword(user.Password, request.Password)
 
 	if err != nil {
 		return "", "", errors.New("invalid email or password")
