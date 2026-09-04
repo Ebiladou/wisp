@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -9,6 +9,7 @@ import (
 	"github.com/Ebiladou/wisp/internal/database"
 	"github.com/Ebiladou/wisp/internal/handlers"
 	"github.com/Ebiladou/wisp/internal/middleware"
+	"github.com/Ebiladou/wisp/internal/observability"
 	"github.com/Ebiladou/wisp/internal/repositories"
 	"github.com/Ebiladou/wisp/internal/routes"
 	"github.com/Ebiladou/wisp/internal/services"
@@ -16,14 +17,20 @@ import (
 
 func main() {
 
+	logger := observability.NewLogger()
+
+	logger.Info("Starting Wisp")
+
 	applicationConfig, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to load configuration", "error", err)
+		os.Exit(1)
 	}
 
-	db, err := database.ConnectToDatabase(applicationConfig)
+	db, err := database.ConnectToDatabase(applicationConfig, logger)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 
 	// Repositories
@@ -43,6 +50,7 @@ func main() {
 		authRepository,
 		tokenRepository,
 		applicationConfig,
+		logger,
 	)
 
 	userService := services.NewUserService(
@@ -87,12 +95,14 @@ func main() {
 
 	rateLimiter, err := middleware.NewRateLimiter("localhost:6379")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to initialize rate limiter", "error", err)
+		os.Exit(1)
 	}
 	defer rateLimiter.Close()
 
 	// Routes
 	router := gin.Default()
+	router.Use(middleware.LoggingMiddleware(logger))
 
 	routes.RegisterAuthRoutes(
 		router,
@@ -111,6 +121,7 @@ func main() {
 
 	err = router.Run(":" + applicationConfig.Port)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("failed to start HTTP server", "error", err)
+		os.Exit(1)
 	}
 }
