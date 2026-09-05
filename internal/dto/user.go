@@ -11,10 +11,9 @@ type CreateUser struct {
 }
 
 type UpdateUserRequest struct {
-	Name           string    `json:"name"`
-	Username       string    `json:"username"`
-	DateOfBirth    time.Time `json:"date_of_birth"`
-	ProfilePicture string    `json:"profile_picture"`
+	Name        string    `json:"name"`
+	Username    string    `json:"username"`
+	DateOfBirth time.Time `json:"date_of_birth"`
 }
 
 type UserResponse struct {

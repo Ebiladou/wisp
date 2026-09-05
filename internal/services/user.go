@@ -86,10 +86,6 @@ func (service *DefaultUserService) UpdateProfile(userID uuid.UUID, request dto.U
 		user.Username = request.Username
 	}
 
-	if request.ProfilePicture != "" {
-		user.ProfilePicture = request.ProfilePicture
-	}
-
 	err = service.userRepository.UpdateUser(user)
 
 	if err != nil {
