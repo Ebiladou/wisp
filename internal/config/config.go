@@ -10,15 +10,17 @@ import (
 )
 
 type Config struct {
-	Port          string
-	DbUser        string
-	DbPassword    string
-	DbName        string
-	DatabaseURL   string
-	Host          string
-	JwtSecret     string
-	JwtExpiryMins int
-	Algorithm     string
+	Port                string
+	DbUser              string
+	DbPassword          string
+	DbName              string
+	DatabaseURL         string
+	Host                string
+	JwtSecret           string
+	JwtExpiryMins       int
+	Algorithm           string
+	CloudflareAccountID string
+	CloudflareAPIToken  string
 }
 
 func LoadConfig() (*Config, error) {
@@ -34,14 +36,16 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		Port:          os.Getenv("PORT"),
-		DbUser:        os.Getenv("DB_USER"),
-		DbPassword:    os.Getenv("DB_PASSWORD"),
-		DbName:        os.Getenv("DB_NAME"),
-		DatabaseURL:   os.Getenv("DATABASE_URL"),
-		Host:          os.Getenv("HOST"),
-		JwtSecret:     os.Getenv("JWT_SECRET"),
-		JwtExpiryMins: jwtExpiryMins,
-		Algorithm:     os.Getenv("ALGORITHM"),
+		Port:                os.Getenv("PORT"),
+		DbUser:              os.Getenv("DB_USER"),
+		DbPassword:          os.Getenv("DB_PASSWORD"),
+		DbName:              os.Getenv("DB_NAME"),
+		DatabaseURL:         os.Getenv("DATABASE_URL"),
+		Host:                os.Getenv("HOST"),
+		JwtSecret:           os.Getenv("JWT_SECRET"),
+		JwtExpiryMins:       jwtExpiryMins,
+		Algorithm:           os.Getenv("ALGORITHM"),
+		CloudflareAccountID: os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
+		CloudflareAPIToken:  os.Getenv("CLOUDFLARE_API_TOKEN"),
 	}, nil
 }
