@@ -7,8 +7,14 @@ type UploadResult struct {
 	UploadURL string
 }
 
+type ImageInfo struct {
+	ID       string
+	Creator  string
+	Uploaded bool
+}
+
 type ImageStorage interface {
 	CreateUploadURL(ctx context.Context, userID string) (*UploadResult, error)
-	IsUploaded(ctx context.Context, imageID string) (bool, error)
+	GetImage(ctx context.Context, imageID string) (*ImageInfo, error)
 	DeleteImage(ctx context.Context, imageID string) error
 }
