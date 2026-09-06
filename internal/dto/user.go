@@ -31,3 +31,12 @@ type PublicUserResponse struct {
 	Username       string `json:"username"`
 	ProfilePicture string `json:"profile_picture"`
 }
+
+type ProfilePictureUploadResponse struct {
+	ImageID   string `json:"image_id"`
+	UploadURL string `json:"upload_url"`
+}
+
+type ConfirmProfilePictureRequest struct {
+	ImageID string `json:"image_id" binding:"required"`
+}
