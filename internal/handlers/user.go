@@ -125,3 +125,60 @@ func (handler *UserHandler) SearchUsers(context *gin.Context) {
 
 	context.JSON(http.StatusOK, users)
 }
+
+func (handler *UserHandler) CreateProfilePictureUpload(context *gin.Context) {
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
+
+	result, err := handler.userService.CreateProfilePictureUpload(context.Request.Context(), user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to create profile picture upload",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, dto.ProfilePictureUploadResponse{
+		ImageID:   result.ID,
+		UploadURL: result.UploadURL,
+	})
+}
+
+func (handler *UserHandler) ConfirmProfilePictureUpload(context *gin.Context) {
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
+
+	var request dto.ConfirmProfilePictureRequest
+
+	if err := context.ShouldBindJSON(&request); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "image_id is required",
+		})
+		return
+	}
+
+	err := handler.userService.ConfirmProfilePictureUpload(context.Request.Context(), user.ID, request.ImageID)
+
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "failed to confirm profile picture",
+		})
+		return
+	}
+
+	context.Status(http.StatusNoContent)
+}
+
+func (handler *UserHandler) DeleteProfilePicture(context *gin.Context) {
+	user := context.MustGet(authentication.AuthenticatedUserKey).(*models.User)
+
+	err := handler.userService.DeleteProfilePicture(context.Request.Context(), user.ID)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to delete profile picture",
+		})
+		return
+	}
+
+	context.Status(http.StatusNoContent)
+}

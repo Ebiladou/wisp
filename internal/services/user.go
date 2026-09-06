@@ -1,12 +1,16 @@
 package services
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 
 	"github.com/Ebiladou/wisp/internal/dto"
 	"github.com/Ebiladou/wisp/internal/repositories"
+	"github.com/Ebiladou/wisp/internal/storage"
 )
 
 type UserService interface {
@@ -15,18 +19,27 @@ type UserService interface {
 	DeactivateUser(userID uuid.UUID) error
 	ActivateUser(userID uuid.UUID) error
 	SearchUsers(userID uuid.UUID, query string) ([]*dto.PublicUserResponse, error)
+	CreateProfilePictureUpload(ctx context.Context, userID uuid.UUID) (*storage.UploadResult, error)
+	ConfirmProfilePictureUpload(ctx context.Context, userID uuid.UUID, imageID string) error
+	DeleteProfilePicture(ctx context.Context, userID uuid.UUID) error
 }
 
 type DefaultUserService struct {
 	userRepository repositories.UserRepository
+	imageStorage   storage.ImageStorage
+	logger         *slog.Logger
 }
 
 func NewUserService(
 	userRepository repositories.UserRepository,
+	imageStorage storage.ImageStorage,
+	logger *slog.Logger,
 ) UserService {
 
 	return &DefaultUserService{
 		userRepository: userRepository,
+		imageStorage:   imageStorage,
+		logger:         logger,
 	}
 }
 
@@ -154,4 +167,146 @@ func (service *DefaultUserService) SearchUsers(userID uuid.UUID, query string) (
 	}
 
 	return responses, nil
+}
+
+func (service *DefaultUserService) CreateProfilePictureUpload(ctx context.Context, userID uuid.UUID) (*storage.UploadResult, error) {
+	result, err := service.imageStorage.CreateUploadURL(ctx, userID.String())
+
+	if err != nil {
+		service.logger.Error(
+			"failed to create profile picture upload URL",
+			"user_id", userID,
+			"error", err,
+		)
+
+		return nil, fmt.Errorf(
+			"create profile picture upload: %w",
+			err,
+		)
+	}
+
+	return result, nil
+}
+
+func (service *DefaultUserService) ConfirmProfilePictureUpload(ctx context.Context, userID uuid.UUID, imageID string) error {
+	if imageID == "" {
+		return errors.New("image ID is required")
+	}
+
+	// we get the image from cloudflare and verify it belongs to the user making the upload request
+	image, err := service.imageStorage.GetImage(ctx, imageID)
+	if err != nil {
+		service.logger.Error(
+			"failed to verify profile picture",
+			"user_id", userID,
+			"error", err,
+		)
+
+		return fmt.Errorf(
+			"get profile picture: %w",
+			err,
+		)
+	}
+
+	if image.Creator != userID.String() {
+		service.logger.Warn(
+			"profile picture ownership validation failed",
+		)
+		return errors.New("image does not belong to user")
+	}
+
+	if !image.Uploaded {
+		return errors.New("image upload is not complete")
+	}
+
+	user, err := service.userRepository.FindByID(userID)
+	if err != nil {
+		return fmt.Errorf(
+			"find user: %w",
+			err,
+		)
+	}
+
+	oldImageID := user.ProfilePicture
+	user.ProfilePicture = imageID
+
+	if err := service.userRepository.UpdateProfilePicture(user); err != nil {
+		service.logger.Error(
+			"failed to update profile picture",
+			"user_id", userID,
+			"error", err,
+		)
+		return fmt.Errorf(
+			"update profile picture: %w",
+			err,
+		)
+	}
+
+	if oldImageID != "" && oldImageID != imageID {
+		if err := service.imageStorage.DeleteImage(
+			ctx,
+			oldImageID,
+		); err != nil {
+			service.logger.Error(
+				"failed to delete old profile picture",
+				"user_id", userID,
+				"error", err,
+			)
+			return fmt.Errorf(
+				"delete old profile picture: %w",
+				err,
+			)
+		}
+	}
+
+	return nil
+}
+
+func (service *DefaultUserService) DeleteProfilePicture(ctx context.Context, userID uuid.UUID) error {
+	user, err := service.userRepository.FindByID(userID)
+	if err != nil {
+		return fmt.Errorf(
+			"find user: %w",
+			err,
+		)
+	}
+
+	if user.ProfilePicture == "" {
+		return nil
+	}
+
+	imageID := user.ProfilePicture
+
+	user.ProfilePicture = ""
+
+	if err := service.userRepository.UpdateProfilePicture(user); err != nil {
+		service.logger.Error(
+			"failed to remove profile picture",
+			"user_id", userID,
+			"error", err,
+		)
+
+		return fmt.Errorf(
+			"remove profile picture: %w",
+			err,
+		)
+	}
+
+	if err := service.imageStorage.DeleteImage(
+		ctx,
+		imageID,
+	); err != nil {
+		service.logger.Error(
+			"failed to delete profile picture",
+			"user_id", userID,
+			"error", err,
+		)
+
+		return fmt.Errorf(
+			"delete profile picture: %w",
+			err,
+		)
+	}
+
+	return nil
 }

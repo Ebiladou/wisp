@@ -96,5 +96,23 @@ func RegisterUserRoutes(
 			authentication.RequireActiveUser(),
 			followHandler.GetFollowing,
 		)
+
+		userRoutes.POST(
+			"/profile-image",
+			authentication.RequireActiveUser(),
+			userHandler.CreateProfilePictureUpload,
+		)
+
+		userRoutes.POST(
+			"/profile-image/confirm",
+			authentication.RequireActiveUser(),
+			userHandler.ConfirmProfilePictureUpload,
+		)
+
+		userRoutes.DELETE(
+			"/profile-image",
+			authentication.RequireActiveUser(),
+			userHandler.DeleteProfilePicture,
+		)
 	}
 }

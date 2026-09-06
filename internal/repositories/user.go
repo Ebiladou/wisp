@@ -16,6 +16,7 @@ type UserRepository interface {
 	UpdateUser(user *models.User) error
 	DeactivateUser(user *models.User) error
 	ActivateUser(user *models.User) error
+	UpdateProfilePicture(user *models.User) error
 }
 
 type PostgreSQLUserRepository struct {
@@ -123,4 +124,11 @@ func (repository *PostgreSQLUserRepository) SearchUsers(userID uuid.UUID, query 
 	}
 
 	return users, nil
+}
+
+func (repository *PostgreSQLUserRepository) UpdateProfilePicture(user *models.User) error {
+	return repository.database.
+		Model(user).
+		Update("profile_picture", user.ProfilePicture).
+		Error
 }
