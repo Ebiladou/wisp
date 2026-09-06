@@ -13,6 +13,7 @@ import (
 	"github.com/Ebiladou/wisp/internal/repositories"
 	"github.com/Ebiladou/wisp/internal/routes"
 	"github.com/Ebiladou/wisp/internal/services"
+	"github.com/Ebiladou/wisp/internal/storage"
 )
 
 func main() {
@@ -40,6 +41,13 @@ func main() {
 	followRepository := repositories.NewPostgreSQLFollowRepository(db)
 	blockRepository := repositories.NewPostgreSQLBlockRepository(db)
 
+	// storage
+
+	imageStorage := storage.NewCloudflareImages(
+		applicationConfig.CloudflareAccountID,
+		applicationConfig.CloudflareAPIToken,
+	)
+
 	// Services
 
 	accessPolicy := services.NewAccessPolicy(
@@ -55,6 +63,8 @@ func main() {
 
 	userService := services.NewUserService(
 		userRepository,
+		imageStorage,
+		logger,
 	)
 
 	followService := services.NewFollowService(
