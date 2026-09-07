@@ -13,8 +13,6 @@ type contextKey string
 
 const requestIDContextKey contextKey = "request_id"
 
-const RequestIDKey = "request_id"
-
 func LoggingMiddleware(logger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -23,17 +21,12 @@ func LoggingMiddleware(logger *slog.Logger) gin.HandlerFunc {
 
 		requestID := uuid.NewString()
 
-		c.Set(RequestIDKey, requestID)
-
-		ctx := context.WithValue(
-			c.Request.Context(),
-			requestIDContextKey,
-			requestID,
-		)
+		ctx := context.WithValue(c.Request.Context(), requestIDContextKey, requestID)
 
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Header("X-Request-ID", requestID)
+
 		c.Next()
 
 		logger.Info(
