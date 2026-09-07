@@ -43,7 +43,23 @@ func (limiter *RateLimiter) Close() error {
 
 func (limiter *RateLimiter) Middleware(config RateLimitConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		key := limiter.buildKey(c)
+		key := fmt.Sprintf(
+			"rate_limit:ip:%s:%s",
+			c.ClientIP(),
+			c.FullPath(),
+		)
+
+		if user, exists := c.Get(authentication.AuthenticatedUserKey); exists {
+			authenticatedUser, ok := user.(*models.User)
+
+			if ok {
+				key = fmt.Sprintf(
+					"rate_limit:user:%s:%s",
+					authenticatedUser.ID,
+					c.FullPath(),
+				)
+			}
+		}
 
 		count, err := limiter.client.Incr(
 			c.Request.Context(),
@@ -104,24 +120,4 @@ func (limiter *RateLimiter) Middleware(config RateLimitConfig) gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-func (limiter *RateLimiter) buildKey(c *gin.Context) string {
-	if user, exists := c.Get(authentication.AuthenticatedUserKey); exists {
-		authenticatedUser, ok := user.(*models.User)
-
-		if ok {
-			return fmt.Sprintf(
-				"rate_limit:user:%s:%s",
-				authenticatedUser.ID,
-				c.FullPath(),
-			)
-		}
-	}
-
-	return fmt.Sprintf(
-		"rate_limit:ip:%s:%s",
-		c.ClientIP(),
-		c.FullPath(),
-	)
 }
