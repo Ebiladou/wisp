@@ -8,7 +8,7 @@ import (
 )
 
 type AccessPolicy interface {
-	CanAccess(userID uuid.UUID, targetUserID uuid.UUID) error
+	CanAccess(userOneID uuid.UUID, userTwoID uuid.UUID) error
 }
 
 type DefaultAccessPolicy struct {
@@ -23,9 +23,9 @@ func NewAccessPolicy(
 	}
 }
 
-func (policy *DefaultAccessPolicy) CanAccess(userID uuid.UUID, targetUserID uuid.UUID) error {
+func (policy *DefaultAccessPolicy) CanAccess(userOneID uuid.UUID, userTwoID uuid.UUID) error {
 
-	blocked, err := policy.blockRepository.IsBlocked(userID, targetUserID)
+	blocked, err := policy.blockRepository.IsBlocked(userOneID, userTwoID)
 
 	if err != nil {
 		return err
