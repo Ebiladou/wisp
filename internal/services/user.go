@@ -179,10 +179,7 @@ func (service *DefaultUserService) CreateProfilePictureUpload(ctx context.Contex
 			"error", err,
 		)
 
-		return nil, fmt.Errorf(
-			"create profile picture upload: %w",
-			err,
-		)
+		return nil, err
 	}
 
 	return result, nil
@@ -193,38 +190,33 @@ func (service *DefaultUserService) ConfirmProfilePictureUpload(ctx context.Conte
 		return errors.New("image ID is required")
 	}
 
-	// we get the image from cloudflare and verify it belongs to the user making the upload request
 	image, err := service.imageStorage.GetImage(ctx, imageID)
 	if err != nil {
 		service.logger.Error(
-			"failed to verify profile picture",
+			"failed to get cloudflare image",
 			"user_id", userID,
 			"error", err,
 		)
 
-		return fmt.Errorf(
-			"get profile picture: %w",
-			err,
-		)
+		return err
 	}
 
 	if image.Creator != userID.String() {
 		service.logger.Warn(
 			"profile picture ownership validation failed",
+			"user_id", userID,
 		)
+
 		return errors.New("image does not belong to user")
 	}
 
-	if !image.Uploaded {
+	if image.Uploaded.IsZero() {
 		return errors.New("image upload is not complete")
 	}
 
 	user, err := service.userRepository.FindByID(userID)
 	if err != nil {
-		return fmt.Errorf(
-			"find user: %w",
-			err,
-		)
+		return err
 	}
 
 	oldImageID := user.ProfilePicture
@@ -243,20 +235,15 @@ func (service *DefaultUserService) ConfirmProfilePictureUpload(ctx context.Conte
 	}
 
 	if oldImageID != "" && oldImageID != imageID {
-		if err := service.imageStorage.DeleteImage(
-			ctx,
-			oldImageID,
-		); err != nil {
+		err := service.imageStorage.DeleteImage(ctx, oldImageID)
+		if err != nil {
 			service.logger.Error(
 				"failed to delete old profile picture",
 				"user_id", userID,
 				"error", err,
 			)
-			return fmt.Errorf(
-				"delete old profile picture: %w",
-				err,
-			)
 		}
+		return err
 	}
 
 	return nil
@@ -265,10 +252,7 @@ func (service *DefaultUserService) ConfirmProfilePictureUpload(ctx context.Conte
 func (service *DefaultUserService) DeleteProfilePicture(ctx context.Context, userID uuid.UUID) error {
 	user, err := service.userRepository.FindByID(userID)
 	if err != nil {
-		return fmt.Errorf(
-			"find user: %w",
-			err,
-		)
+		return err
 	}
 
 	if user.ProfilePicture == "" {
@@ -302,10 +286,7 @@ func (service *DefaultUserService) DeleteProfilePicture(ctx context.Context, use
 			"error", err,
 		)
 
-		return fmt.Errorf(
-			"delete profile picture: %w",
-			err,
-		)
+		return err
 	}
 
 	return nil
