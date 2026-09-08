@@ -14,13 +14,8 @@ type CloudflareImages struct {
 	accountID string
 }
 
-func NewCloudflareImages(
-	accountID string,
-	apiToken string,
-) *CloudflareImages {
-	client := cloudflare.NewClient(
-		option.WithAPIToken(apiToken),
-	)
+func NewCloudflareImages(accountID string, apiToken string) *CloudflareImages {
+	client := cloudflare.NewClient(option.WithAPIToken(apiToken))
 
 	return &CloudflareImages{
 		client:    client,
