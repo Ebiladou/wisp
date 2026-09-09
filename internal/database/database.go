@@ -27,6 +27,10 @@ func ConnectToDatabase(applicationConfig *config.Config, logger *slog.Logger) (*
 		&models.Follow{},
 		&models.Block{},
 		&models.Token{},
+		&models.Chat{},
+		&models.Message{},
+		&models.Media{},
+		&models.ViewingSession{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
