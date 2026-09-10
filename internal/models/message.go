@@ -31,4 +31,5 @@ type Message struct {
 	Media     *Media      `gorm:"foreignKey:MediaID"`
 	CreatedAt time.Time
 	ExpiresAt time.Time `gorm:"not null;index"`
+	Deleted   bool      `gorm:"not null;default:false"`
 }
