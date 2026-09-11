@@ -12,7 +12,7 @@ type ChatRepository interface {
 	CreateChat(chat *models.Chat) error
 	GetChat(userID uuid.UUID, chatID uuid.UUID) (*models.Chat, error)
 	GetChats(userID uuid.UUID) ([]*models.Chat, error)
-	ChatExists(userOneID uuid.UUID, userTwoID uuid.UUID) (bool, error)
+	ChatBetweenUsers(userOneID uuid.UUID, userTwoID uuid.UUID) (*models.Chat, error)
 }
 
 type PostgreSQLChatRepository struct {
@@ -61,7 +61,7 @@ func (repository *PostgreSQLChatRepository) GetChats(userID uuid.UUID) ([]*model
 	return chats, nil
 }
 
-func (repository *PostgreSQLChatRepository) ChatExists(userOneID uuid.UUID, userTwoID uuid.UUID) (bool, error) {
+func (repository *PostgreSQLChatRepository) ChatBetweenUsers(userOneID uuid.UUID, userTwoID uuid.UUID) (*models.Chat, error) {
 	var chat models.Chat
 
 	err := repository.database.Where(
@@ -74,8 +74,8 @@ func (repository *PostgreSQLChatRepository) ChatExists(userOneID uuid.UUID, user
 	).First(&chat).Error
 
 	if err != nil {
-		return false, nil
+		return nil, err
 	}
 
-	return true, nil
+	return &chat, nil
 }
