@@ -8,10 +8,11 @@ import (
 )
 
 type MessageCreate struct {
-	RecipientID uuid.UUID          `json:"recipient_id" binding:"required"`
-	Type        models.MessageType `json:"type" binding:"required"`
-	Content     *string            `json:"content"`
-	MediaID     *uuid.UUID         `json:"media_id"`
+	RecipientID   uuid.UUID          `json:"recipient_id" binding:"required"`
+	Type          models.MessageType `json:"type" binding:"required"`
+	Content       *string            `json:"content"`
+	MediaID       *uuid.UUID         `json:"media_id"`
+	ExpiryMinutes int                `json:"expiry_minutes" binding:"required"`
 }
 
 type MessageResponse struct {
