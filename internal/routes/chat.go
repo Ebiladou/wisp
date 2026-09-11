@@ -11,6 +11,7 @@ import (
 func RegisterChatRoutes(
 	router *gin.Engine,
 	chatHandler *handlers.ChatHandler,
+	messageHandler *handlers.MessageHandler,
 	authenticationMiddleware gin.HandlerFunc,
 	rateLimiter *middleware.RateLimiter,
 ) {
@@ -33,6 +34,12 @@ func RegisterChatRoutes(
 			"/:id",
 			authentication.RequireActiveUser(),
 			chatHandler.GetChat,
+		)
+
+		chatRoutes.GET(
+			"/:id/messages",
+			authentication.RequireActiveUser(),
+			messageHandler.GetMessagesInChat,
 		)
 
 	}
