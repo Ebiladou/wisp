@@ -41,6 +41,7 @@ func main() {
 	followRepository := repositories.NewPostgreSQLFollowRepository(db)
 	blockRepository := repositories.NewPostgreSQLBlockRepository(db)
 	chatRepository := repositories.NewPostgreSQLChatRepository(db)
+	messageRepository := repositories.NewPostgreSQLMessageRepository(db)
 
 	// storage
 
@@ -84,6 +85,12 @@ func main() {
 		chatRepository,
 	)
 
+	messageService := services.NewMessageService(
+		chatRepository,
+		messageRepository,
+		accessPolicy,
+	)
+
 	// Handlers
 	authHandler := handlers.NewAuthHandler(
 		authService,
@@ -104,6 +111,10 @@ func main() {
 
 	chatHandler := handlers.NewChatHandler(
 		chatService,
+	)
+
+	messageHandler := handlers.NewMessageHandler(
+		messageService,
 	)
 
 	// Middlewares
@@ -147,6 +158,14 @@ func main() {
 	routes.RegisterChatRoutes(
 		router,
 		chatHandler,
+		messageHandler,
+		authenticationMiddleware,
+		rateLimiter,
+	)
+
+	routes.RegisterMessageRoutes(
+		router,
+		messageHandler,
 		authenticationMiddleware,
 		rateLimiter,
 	)
