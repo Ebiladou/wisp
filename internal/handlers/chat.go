@@ -14,9 +14,7 @@ type ChatHandler struct {
 	chatService services.ChatService
 }
 
-func NewChatHandler(
-	chatService services.ChatService,
-) *ChatHandler {
+func NewChatHandler(chatService services.ChatService) *ChatHandler {
 	return &ChatHandler{
 		chatService: chatService,
 	}
